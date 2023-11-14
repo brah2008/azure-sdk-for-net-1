@@ -1,40 +1,45 @@
-function Test-SupportsDevOpsLogging()
-{
+function Test-SupportsDevOpsLogging {
     return ($null -ne $env:SYSTEM_TEAMPROJECTID)
 }
 
-function LogWarning
-{
-    if (Test-SupportsDevOpsLogging)
-    {
-        Write-Host "##vso[task.LogIssue type=warning;]$args"
-    }
-    else
-    {
-        Write-Warning "$args"
+function LogIssue {
+    param (
+        [string]$type,
+        [string]$message
+    )
+
+    if (Test-SupportsDevOpsLogging) {
+        Write-Host "##vso[task.LogIssue type=$type;]$message"
+    } else {
+        switch ($type) {
+            "warning" { Write-Warning $message }
+            "error"   { Write-Error $message }
+            "debug"   { Write-Debug $message }
+            default   { Write-Output $message }
+        }
     }
 }
 
-function LogError
-{
-    if (Test-SupportsDevOpsLogging)
-    {
-        Write-Host "##vso[task.LogIssue type=error;]$args"
-    }
-    else
-    {
-        Write-Error "$args"
-    }
+function LogWarning {
+    param (
+        [string]$message
+    )
+
+    LogIssue -type "warning" -message $message
 }
 
-function LogDebug
-{
-    if (Test-SupportsDevOpsLogging)
-    {
-        Write-Host "[debug]$args"
-    }
-    else
-    {
-        Write-Debug "$args"
-    }
+function LogError {
+    param (
+        [string]$message
+    )
+
+    LogIssue -type "error" -message $message
+}
+
+function LogDebug {
+    param (
+        [string]$message
+    )
+
+    LogIssue -type "debug" -message $message
 }
